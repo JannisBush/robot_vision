@@ -1,0 +1,11 @@
+<launch>
+
+    <node pkg="naoqi_driver" type="naoqi_driver_node" name="naoqi_driver" required="true" args="--qi-url=tcp://192.168.1.100:9559 --roscore_ip=192.168.1.131 --network_interface=wlp9s0 --namespace=naoqi_driver" output="screen" />
+
+   <node pkg="image_recognition_openface" type="face_recognition_node" name="openface" args="" required="True" />
+   <node pkg="image_recognition_skybiometry" type="face_properties_node" name="skybiometry" args="" required="True" />
+   <node pkg="image_recognition_tensorflow" type="object_recognition_node" name="object_tensorflow" args="_graph_path:=~/tensorflow-objects/images/output_graph.pb _labels_path:=~/tensorflow-objects/images/output_labels.txt
+" required="True" />
+
+
+</launch>

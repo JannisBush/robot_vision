@@ -50,6 +50,7 @@ find_package(catkin REQUIRED COMPONENTS
  add_message_files(
    FILES
    PersonCharacteristics.msg
+   PositionCommand.msg
 #   Message2.msg
  )
 

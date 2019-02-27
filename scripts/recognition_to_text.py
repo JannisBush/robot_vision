@@ -8,7 +8,7 @@ from sensor_msgs.msg import Image, RegionOfInterest
 import rosservice
 from cv_bridge import CvBridge, CvBridgeError
 from image_recognition_msgs.msg import Annotation
-from robot_vision.msg import PersonCharacteristics
+from robot_vision.msg import PersonCharacteristics, PositionCommand
 
 
 class pepper_answer:
@@ -38,10 +38,23 @@ class pepper_answer:
 	    except Exception as e:
 		print(e)
 	    
-	    msg = ""
-            for properties in result.properties_array:
-            	msg += "- FaceProperties(gender=%s, age=%s)" % ("male" if properties.gender == FaceProperties.MALE else "female", properties.age)
 	    print(result.properties_array)
+	    #msg = ""
+	    msg = PersonCharacteristics()
+	   
+            for properties in result.properties_array:
+				self.guest_gender = properties.gender
+				self.guest_age = properties.age
+				self.guest_glasses = properties.glasses
+
+		# msg += "- FaceProperties(gender=%s, age=%s, glasses=%s, mood=%s)" % \
+        #            ("male" if properties.gender == FaceProperties.MALE else "female", properties.age,
+		#      "false" if properties.glasses == 0 else "true")
+
+		#return msg
+
+
+
 
 	def recognize_face(self, img):
 	    try:
@@ -62,13 +75,15 @@ class pepper_answer:
 		    self.face_properties(img)
 		    msg = PersonCharacteristics()
 		    msg.name = best.label
+		    msg.gender = self.guest_gender
+		    msg.age = self.guest_age
+		    msg.glasses = self.guest_glasses
 		    self.pepper_prop_pub.publish(msg)
 		else:
 		    self.pepper_face_recognized_pub.publish("unknown_guest")
 		    self.learn_face(img)
 
 	def learn_face(self, roi_image):
-	    
 	    
 	    if self.label == "nobody":
 		return
@@ -130,6 +145,13 @@ class pepper_answer:
         def callback_label(self, data): 
 		self.label = data.data
 
+	def callback_currentloc(self,data):
+		if data.data == "bar" and self.label != "nobody":
+			self.pepper_face_recognized_pub.publish(self.label)
+		else:
+			self.pepper_face_recognized_pub.publish("unknown_guest")
+			
+
 	def pepper_answer(self):
 
 	    # In ROS, nodes are uniquely named. If two nodes with the same
@@ -145,17 +167,27 @@ class pepper_answer:
             self.label = "nobody"
 	    self.tresh = 2
             self.already = False
+	    self.guest_gender = 0
+            self.guest_glasses = 0
+            self.guest_age = 20
 
+	    # publishers
 	    self.pepper_string_pub  = rospy.Publisher("/speech", String, queue_size=1)
 	    self.pepper_face_recognized_pub  = rospy.Publisher("/which_guest", String, queue_size=1)
 	    self.pepper_prop_pub = rospy.Publisher("/person_characteristics", PersonCharacteristics, queue_size=1)
+	    self.pepper_go_to_pub = rospy.Publisher("/position_command", PositionCommand, queue_size=1)
+
+	    # services
 	    self.rec_srv = rospy.ServiceProxy("/recognize", rosservice.get_service_class_by_name("/recognize"))
 	    self.an_srv = rospy.ServiceProxy("/annotate", rosservice.get_service_class_by_name("/annotate"))
 	    self.obj_srv = rospy.ServiceProxy("/object_recognition", rosservice.get_service_class_by_name("/object_recognition"))
 	    self.prop_srv = rospy.ServiceProxy("/get_face_properties", rosservice.get_service_class_by_name("/get_face_properties"))
+
+	    # subscribers
 	    rospy.Subscriber("/recognitions", Recognitions, self.callback_recognition)
             rospy.Subscriber("/naoqi_driver/camera/front/image_raw", Image, self.callback_image)
             rospy.Subscriber("/person_name", String, self.callback_label)
+	    rospy.Subscriber("/current_location", String, self.callback_currentloc)
 
 	    # spin() simply keeps python from exiting until this node is stopped
 	    rospy.spin()
