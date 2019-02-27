@@ -81,6 +81,9 @@ class pepper_answer:
 		    self.pepper_prop_pub.publish(msg)
 		else:
 		    self.pepper_face_recognized_pub.publish("unknown_guest")
+		    msg = PersonCharacteristics()
+		    msg.name = ""
+		    self.pepper_prop_pub.publish(msg)
 		    self.learn_face(img)
 
 	def learn_face(self, roi_image):
