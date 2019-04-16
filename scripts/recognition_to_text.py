@@ -38,7 +38,7 @@ class pepper_answer:
 	    except Exception as e:
 		print(e)
 	    
-	    print(result.properties_array)
+	    #print(result.properties_array)
 	    #msg = ""
 	    msg = PersonCharacteristics()
 	   
@@ -46,11 +46,9 @@ class pepper_answer:
 				self.guest_gender = properties.gender
 				self.guest_age = properties.age
 				self.guest_glasses = properties.glasses
-
-		# msg += "- FaceProperties(gender=%s, age=%s, glasses=%s, mood=%s)" % \
-        #            ("male" if properties.gender == FaceProperties.MALE else "female", properties.age,
-		#      "false" if properties.glasses == 0 else "true")
-
+				msg += "- FaceProperties(gender=%s, age=%s, glasses=%s, mood=%s)" % ("male" if properties.gender == FaceProperties.MALE else "female", properties.age,"false" if properties.glasses == 0 else "true")
+				print msg
+	    print result.properties_array
 		#return msg
 
 
@@ -70,14 +68,21 @@ class pepper_answer:
                     if p.probability > best.probability:
                         best = p
 	        if best.probability > self.tresh:
+		    print(best.label)
 		    self.pepper_face_recognized_pub.publish(best.label)
-		    self.recognize_object(img)
+		    #!
+		    print(best.label)
+		    if self.last_rec_label != best.label: 
+			self.already = False
+			self.last_rec_label=best.label
+		    #self.recognize_object(img)
 		    self.face_properties(img)
 		    msg = PersonCharacteristics()
 		    msg.name = best.label
 		    msg.gender = self.guest_gender
 		    msg.age = self.guest_age
 		    msg.glasses = self.guest_glasses
+		    print msg
 		    self.pepper_prop_pub.publish(msg)
 		else:
 		    self.pepper_face_recognized_pub.publish("unknown_guest")
@@ -120,7 +125,7 @@ class pepper_answer:
                     if best.label != self.last_rec_label:
 	                self.last_rec_label = best.label
 		        self.pepper_string_pub.publish(np.random.choice(greetings)+best.label)
-
+			self.already = False
 
         def callback_image(self, img):
 		try:
