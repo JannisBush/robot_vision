@@ -167,7 +167,7 @@ class pepper_answer:
 	    # anonymous=True flag means that rospy will choose a unique
 	    # name for our 'listener' node so that multiple listeners can
 	    # run simultaneously.
-	    rospy.init_node('pepper_answer', anonymous=True)
+	    rospy.init_node('pepper_answer', anonymous=False)
             self.last_rec_label = "nobody"
 
 	    self.hog_face_detector = dlib.get_frontal_face_detector()
@@ -180,7 +180,7 @@ class pepper_answer:
             self.guest_age = 20
 
 	    # publishers
-	    self.pepper_string_pub  = rospy.Publisher("/speech", String, queue_size=1)
+	    #self.pepper_string_pub  = rospy.Publisher("/speech", String, queue_size=1)
 	    self.pepper_face_recognized_pub  = rospy.Publisher("/which_guest", String, queue_size=1)
 	    self.pepper_prop_pub = rospy.Publisher("/person_characteristics", PersonCharacteristics, queue_size=1)
 	    self.pepper_go_to_pub = rospy.Publisher("/position_command", PositionCommand, queue_size=1)
@@ -192,8 +192,9 @@ class pepper_answer:
 	    self.prop_srv = rospy.ServiceProxy("/get_face_properties", rosservice.get_service_class_by_name("/get_face_properties"))
 
 	    # subscribers
-	    rospy.Subscriber("/recognitions", Recognitions, self.callback_recognition)
-            rospy.Subscriber("/naoqi_driver/camera/front/image_raw", Image, self.callback_image)
+	    #rospy.Subscriber("/recognitions", Recognitions, self.callback_recognition)
+            #rospy.Subscriber("/naoqi_driver/camera/front/image_raw", Image, self.callback_image)
+	    rospy.Subscriber("/camera/raw", Image, self.callback_image)
             rospy.Subscriber("/person_name", String, self.callback_label)
 	    rospy.Subscriber("/current_location", String, self.callback_currentloc)
 
